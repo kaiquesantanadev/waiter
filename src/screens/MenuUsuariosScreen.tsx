@@ -26,7 +26,7 @@ const MenuUsuariosScreen: React.FC = () => {
   };
 
   const handleExcluir = () => {
-    Alert.alert('Navegar para excluir usuário');
+    navigation.navigate('MenuExcluirUsuarios');
   };
 
   return (

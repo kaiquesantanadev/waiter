@@ -36,7 +36,7 @@ const GerenteScreen: React.FC = () => {
   };
 
   const goToProdutos = () => {
-    Alert.alert('Produto', 'Navegar para gerenciamento de produtos');
+        navigation.navigate('MenuADMProdutos');
   };
 
   return (
