@@ -38,7 +38,7 @@ const MenuExcluirUsuariosScreen: React.FC = () => {
   useEffect(() => {
     isMounted.current = true;
     return () => {
-      isMounted.current = false; // quando desmontar, sinaliza que não está mais montado
+      isMounted.current = false; 
     };
   }, []);
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View, StyleSheet, Text, FlatList, Alert, TouchableOpacity, Image
 } from 'react-native';
@@ -32,9 +32,20 @@ const MenuExcluirProdutosScreen: React.FC = () => {
 
   const goBack = () => navigation.goBack();
 
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+
   const fetchProdutos = async () => {
     let responseData: any = null;
     let filtrados: Produto[] = [];
+
 
     try {
       const token = await AsyncStorage.getItem('token');

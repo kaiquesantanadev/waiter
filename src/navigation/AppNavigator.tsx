@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LoginScreen } from '../screens/LoginScreen';
-import GarcomScreen from '../screens/GarcomScreen';
+import GarcomMenuScreen from '../screens/Garcom/GarcomScreen';
 import CozinheiroScreen from '../screens/CozinheiroScreen';
 import GerenteScreen from '../screens/GerenteScreen';
 import MenuUsuariosScreen from '../screens/MenuUsuariosScreen';
@@ -9,6 +9,7 @@ import MenuCriarUsuariosScreen from '../screens/ADMUsuario/MenuCriarUsuariosScre
 import MenuExcluirUsuariosScreen from '../screens/ADMUsuario/MenuExcluirUsuarios';
 import MenuProdutosScreen from '../screens/MenuProdutosScreen';
 import MenuExcluirProdutosScreen from '../screens/ADMProduto/MenuExcluirProdutos';
+import CriarPedidoScreen from '../screens/Garcom/GarcomCriarPedido';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -19,7 +20,8 @@ export type RootStackParamList = {
   MenuADMProdutos: undefined;
   MenuCriarUsuarios: undefined;
   MenuExcluirUsuarios: undefined;
-  MenuExcluirProdutos: undefined
+  MenuExcluirProdutos: undefined,
+  CriarPedidoScreen: undefined
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -28,7 +30,7 @@ export default function AppNavigator() {
   return (
       <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Garcom" component={GarcomScreen} />
+        <Stack.Screen name="Garcom" component={GarcomMenuScreen} />
         <Stack.Screen name="Cozinheiro" component={CozinheiroScreen} />
         <Stack.Screen name="Gerente" component={GerenteScreen} />
         <Stack.Screen name="MenuADMUsuarios" component={MenuUsuariosScreen} />
@@ -36,6 +38,8 @@ export default function AppNavigator() {
         <Stack.Screen name="MenuCriarUsuarios" component={MenuCriarUsuariosScreen} />
         <Stack.Screen name="MenuExcluirUsuarios" component={MenuExcluirUsuariosScreen} />
         <Stack.Screen name="MenuExcluirProdutos" component={MenuExcluirProdutosScreen} />
+        <Stack.Screen name="CriarPedidoScreen" component={CriarPedidoScreen} />
+
       </Stack.Navigator>
   );
 }
