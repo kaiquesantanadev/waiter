@@ -10,6 +10,7 @@ import MenuExcluirUsuariosScreen from '../screens/ADMUsuario/MenuExcluirUsuarios
 import MenuProdutosScreen from '../screens/MenuProdutosScreen';
 import MenuExcluirProdutosScreen from '../screens/ADMProduto/MenuExcluirProdutos';
 import CriarPedidoScreen from '../screens/Garcom/GarcomCriarPedido';
+import GerenciarPedidosScreen from '../screens/Cozinheiro/GerenciarPedidosScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -21,7 +22,8 @@ export type RootStackParamList = {
   MenuCriarUsuarios: undefined;
   MenuExcluirUsuarios: undefined;
   MenuExcluirProdutos: undefined,
-  CriarPedidoScreen: undefined
+  CriarPedidoScreen: undefined;
+  GerenciarPedidosScreen: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -39,7 +41,7 @@ export default function AppNavigator() {
         <Stack.Screen name="MenuExcluirUsuarios" component={MenuExcluirUsuariosScreen} />
         <Stack.Screen name="MenuExcluirProdutos" component={MenuExcluirProdutosScreen} />
         <Stack.Screen name="CriarPedidoScreen" component={CriarPedidoScreen} />
-
+        <Stack.Screen name="GerenciarPedidosScreen" component={GerenciarPedidosScreen} />
       </Stack.Navigator>
   );
 }
