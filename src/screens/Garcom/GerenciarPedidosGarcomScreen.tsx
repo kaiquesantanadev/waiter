@@ -15,8 +15,6 @@ import colors from '../../styles/colors';
 import { SubmitButton } from '../../components/SubmitButton';
 import { BASE_URL } from '../../config/api';
 
-const statusOptions = ['A_FAZER', 'FAZENDO'];
-
 interface Produto {
   id: number;
   nome: string;
@@ -43,6 +41,7 @@ interface ItemPedido {
   observacao: string;
   produto: Produto;
   controleStatusItemPedidoDtoDetalhar: ControleStatusItemPedido;
+  mesa: number; // adicionando mesa aqui
 }
 
 interface PedidoCardProps {
@@ -54,10 +53,12 @@ const PedidoCard: React.FC<PedidoCardProps> = ({ item, onUpdate }) => {
   const nomeProduto = item.produto?.nome;
   const observacao = item.observacao || 'Sem observações';
   const statusAtual = item.controleStatusItemPedidoDtoDetalhar?.status?.descricao;
+  const mesa = item.mesa;
 
   return (
     <View style={styles.card}>
       <Text style={styles.nome}>{nomeProduto}</Text>
+      <Text style={styles.mesa}>Mesa: {mesa}</Text> {/* Aqui mostramos a mesa */}
       <Text style={styles.observacao}>Observação: {observacao}</Text>
       <Text style={styles.status}>Status: {statusAtual}</Text>
       <SubmitButton label="Atualizar" onPress={onUpdate} />
@@ -65,18 +66,18 @@ const PedidoCard: React.FC<PedidoCardProps> = ({ item, onUpdate }) => {
   );
 };
 
-const GerenciarPedidosScreen: React.FC = () => {
-  const [statusSelecionado, setStatusSelecionado] = useState<'A_FAZER' | 'FAZENDO'>('A_FAZER');
+const GerenciarPedidosGarcomScreen: React.FC = () => {
   const [pedidos, setPedidos] = useState<ItemPedido[]>([]);
+  const statusFiltrado = 'PRONTO'; // status fixo para o garçom
 
   const fetchPedidos = async () => {
-    console.log(`🔄 Buscando pedidos com status: ${statusSelecionado}`);
+    console.log(`🔄 Buscando pedidos com status: ${statusFiltrado}`);
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(`http://${BASE_URL}/pedido/status`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
-          statusProcesso: statusSelecionado,
+          statusProcesso: statusFiltrado,
           size: 50,
         },
       });
@@ -90,19 +91,22 @@ const GerenciarPedidosScreen: React.FC = () => {
             ?.toUpperCase()
             ?.replace(/\s/g, '_');
 
-          const isMatch = statusDesc === statusSelecionado;
+          const isMatch = statusDesc === statusFiltrado;
 
           if (!isMatch) {
             console.log(
-              `⏩ Item ignorado (status: ${statusDesc}, esperado: ${statusSelecionado})`
+              `⏩ Item ignorado (status: ${statusDesc}, esperado: ${statusFiltrado})`
             );
           }
 
           return isMatch;
-        })
+        }).map((item: any) => ({
+          ...item,
+          mesa: pedido.mesa, // adiciona a mesa do pedido pai dentro do item
+        }))
       );
 
-      console.log(`📦 Total de itens com status "${statusSelecionado}":`, todosItens.length);
+      console.log(`📦 Total de itens com status "${statusFiltrado}":`, todosItens.length);
       setPedidos(todosItens);
     } catch (error) {
       console.error('❌ Erro ao buscar pedidos:', error);
@@ -110,17 +114,17 @@ const GerenciarPedidosScreen: React.FC = () => {
     }
   };
 
-  const handleUpdate = async (idStatusControle: number, statusAtual: string) => {
-    const proximoStatus = statusAtual === 'A Fazer' ? 'FAZENDO' : 'PRONTO';
-    console.log(`🛠 Atualizando status de ID ${idStatusControle} para "${proximoStatus}"...`);
+  const handleUpdate = async (idItemPedido: number) => {
+    const novoStatus = 'ENTREGUE';
+    console.log(`🛠 Atualizando itemPedido ID ${idItemPedido} para "${novoStatus}"...`);
     try {
       const token = await AsyncStorage.getItem('token');
       await axios.put(
-        `http://${BASE_URL}/controle-status-item-pedido/${idStatusControle}`,
-        { descricao: 'Atualizado via app', status: proximoStatus },
+        `http://${BASE_URL}/controle-status-item-pedido/${idItemPedido}`,
+        { descricao: 'Atualizado via app', status: novoStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      Alert.alert('Sucesso', 'Status atualizado com sucesso!');
+      Alert.alert('Sucesso', 'Status atualizado para ENTREGUE com sucesso!');
       fetchPedidos();
     } catch (error: any) {
       console.log('❌ Erro ao atualizar status:', error.response?.data || error.message);
@@ -130,36 +134,13 @@ const GerenciarPedidosScreen: React.FC = () => {
 
   useEffect(() => {
     fetchPedidos();
-  }, [statusSelecionado]);
+  }, []);
 
   return (
     <View style={styles.container}>
       <Animatable.View animation="fadeInDown" style={styles.header}>
-        <Text style={styles.title}>Gerenciar Pedidos</Text>
+        <Text style={styles.title}>Pedidos para Entrega</Text>
       </Animatable.View>
-
-      <View style={styles.filterContainer}>
-        {statusOptions.map((status) => (
-          <TouchableOpacity
-            key={status}
-            style={[
-              styles.filterButton,
-              statusSelecionado === status && styles.filterButtonActive,
-            ]}
-            onPress={() => setStatusSelecionado(status as 'A_FAZER' | 'FAZENDO')}
-          >
-            <Text
-              style={
-                statusSelecionado === status
-                  ? styles.filterButtonTextActive
-                  : styles.filterButtonText
-              }
-            >
-              {status}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
 
       <FlatList
         data={pedidos}
@@ -168,13 +149,11 @@ const GerenciarPedidosScreen: React.FC = () => {
         renderItem={({ item }) => (
           <PedidoCard
             item={item}
-            onUpdate={() =>
-              handleUpdate(
-                item.id, // <== Esse é o id do itensPedido
-                item.controleStatusItemPedidoDtoDetalhar?.status?.descricao
-              )
-            }
+            onUpdate={() => handleUpdate(item.id)}
           />
+        )}
+        ListEmptyComponent={() => (
+          <Text style={styles.emptyText}>Nenhum pedido com status PRONTO.</Text>
         )}
       />
     </View>
@@ -196,28 +175,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.white,
   },
-  filterContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  filterButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: colors.secondary,
-  },
-  filterButtonActive: {
-    backgroundColor: colors.accent,
-  },
-  filterButtonText: {
-    color: colors.white,
-  },
-  filterButtonTextActive: {
-    color: colors.textDark,
-    fontWeight: 'bold',
-  },
   card: {
     backgroundColor: '#2c2c2e',
     borderRadius: 12,
@@ -235,6 +192,11 @@ const styles = StyleSheet.create({
     color: colors.white,
     marginBottom: 4,
   },
+  mesa: {
+    fontSize: 16,
+    color: colors.accent,
+    marginBottom: 4,
+  },
   observacao: {
     fontSize: 14,
     color: '#d1d1d6',
@@ -246,6 +208,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 8,
   },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 40,
+    color: colors.textDark,
+    fontSize: 16,
+  },
 });
 
-export default GerenciarPedidosScreen;
+export default GerenciarPedidosGarcomScreen;

@@ -49,13 +49,73 @@ const CriarPedidoScreen: React.FC = () => {
   };
 
   const adicionarProduto = (produto: any) => {
-    setPedido(prev => [...prev, { ...produto, observacao }]);
+    setPedido(prev => [...prev, { ...produto, observacao: observacao.trim() !== '' ? observacao : 'Sem observações' }]);
     setObservacao('');
     setModalVisible(false);
   };
 
   const removerProduto = (index: number) => {
     setPedido(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const enviarPedido = async () => {
+    if (pedido.length === 0) {
+      return Alert.alert('Aviso', 'Adicione ao menos um item ao pedido.');
+    }
+
+    try {
+      const token = await AsyncStorage.getItem('token');
+
+      const itensAgrupados: { [key: string]: any } = {};
+
+      pedido.forEach(item => {
+        const chave = `${item.id}-${item.observacao || ''}`;
+        if (!itensAgrupados[chave]) {
+          itensAgrupados[chave] = {
+            idProduto: item.id,
+            observacoes: item.observacao || '',
+            quantidade: 1
+          };
+        } else {
+          itensAgrupados[chave].quantidade += 1;
+        }
+      });
+
+      // Expandir em quantidade de objetos
+      const itensPedido = Object.values(itensAgrupados).flatMap((item: any) =>
+        Array.from({ length: item.quantidade }, () => ({
+          idProduto: item.idProduto,
+          observacoes: item.observacoes.trim() !== '' ? item.observacoes : 'Sem observações'
+        }))
+      );
+
+      const payload = {
+        mesa,
+        comanda: `Comanda ${comanda}`,
+        itensPedido
+      };
+
+    console.log('Corpo da requisição:', JSON.stringify(payload, null, 2));
+
+
+      await axios.post(`http://${BASE_URL}/pedido`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      Alert.alert('Sucesso', 'Pedido enviado com sucesso!');
+      setPedido([]);
+    } catch (error: any) {
+    const mensagem =
+    error.response?.data?.message ||
+    error.response?.data?.mensagem ||
+    error.response?.data?.error ||
+    'Falha ao enviar o pedido.';
+      Alert.alert('Erro', 'Falha ao enviar o pedido.');
+      console.log(mensagem)
+    }
   };
 
   return (
@@ -124,11 +184,8 @@ const CriarPedidoScreen: React.FC = () => {
           <Text style={styles.buttonText}>Visualizar Pedido</Text>
         </TouchableOpacity>
 
-        {/* botão submit a fazer - gustavo */}
         <View style={{ marginTop: 30 }}>
-          <SubmitButton label="Enviar Pedido" onPress={() => {
-            Alert.alert('Em breve', 'Funcionalidade de envio ainda não implementada.');
-          }} />
+          <SubmitButton label="Enviar Pedido" onPress={enviarPedido} />
         </View>
       </Animatable.View>
 

@@ -22,7 +22,7 @@ const GarcomMenuScreen: React.FC = () => {
   };
 
   const handleVerPedidos = () => {
-    Alert.alert('OI')
+    navigation.navigate('GerenciarPedidosGarcomScreen');
   };
 
 
